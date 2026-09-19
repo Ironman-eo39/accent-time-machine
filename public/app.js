@@ -27,11 +27,26 @@ const retryButton = document.querySelector("#retry");
 
 let busy = false;
 
+const VALID_DIRECTIONS = new Set(["en-es", "es-en", "en-fr", "fr-en"]);
+
+function isRouteValid() {
+  return VALID_DIRECTIONS.has(fromSelect.value + "-" + toSelect.value);
+}
+
 function updateSendState() {
   const text = textInput.value.trim();
-  const same = fromSelect.value === toSelect.value;
+  const valid = isRouteValid();
   charCount.textContent = textInput.value.length + " / 500";
-  sendButton.disabled = busy || text.length === 0 || same;
+  sendButton.disabled = busy || text.length === 0 || !valid;
+  const note = document.querySelector("#route-note");
+  if (!note) return;
+  if (valid) {
+    note.textContent = "Available routes: English \u2194 Espa\u00f1ol \u00b7 English \u2194 Fran\u00e7ais";
+    note.classList.remove("invalid");
+  } else {
+    note.textContent = "That route is not available. Only English \u2194 Espa\u00f1ol and English \u2194 Fran\u00e7ais." ;
+    note.classList.add("invalid");
+  }
 }
 
 function resetToComposer() {

@@ -387,3 +387,19 @@ footer {
   footer { flex-direction: column; gap: 8px; }
 }
 
+
+
+.route-note {
+  margin: 0 0 20px;
+  color: var(--ink-muted);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+}
+
+.route-note.invalid {
+  color: var(--seal);
+  font-style: normal;
+  font-weight: 700;
+}
