@@ -200,5 +200,16 @@ audioEl.addEventListener("ended", () => {
 anotherButton.addEventListener("click", resetToComposer);
 retryButton.addEventListener("click", () => { errorSection.hidden = true; timeTravel(); });
 
+const swapButton = document.querySelector("#swap");
+if (swapButton) {
+  swapButton.addEventListener("click", () => {
+    const a = fromSelect.value;
+    const b = toSelect.value;
+    fromSelect.value = b;
+    toSelect.value = a;
+    updateSendState();
+  });
+}
+
 updateSendState();
 

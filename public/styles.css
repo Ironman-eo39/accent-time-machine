@@ -136,10 +136,18 @@ h1 em {
 
 .route-arrow {
   align-self: end;
-  padding-bottom: 12px;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  border: 0;
+  background: transparent;
   color: var(--seal);
   font-size: 26px;
+  cursor: pointer;
+  transition: transform .2s, color .2s;
 }
+
+.route-arrow:hover { color: var(--ink); transform: rotate(180deg); }
+.route-arrow:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 textarea {
   width: 100%;
