@@ -40,6 +40,7 @@ function updateSendState() {
   const valid = isRouteValid();
   charCount.textContent = textInput.value.length + " / 500";
   sendButton.disabled = busy || text.length === 0 || !valid;
+
   const note = document.querySelector("#route-note");
   if (!note) return;
   if (valid) {
@@ -172,6 +173,8 @@ async function timeTravel() {
     resultSection.hidden = false;
 
     try { await audioEl.play(); } catch { /* autoplay blocked */ }
+    textInput.value = "";
+    updateSendState();
   } catch (err) {
     showError(err.message || "Something went wrong.");
   } finally {
@@ -229,4 +232,3 @@ anotherButton.addEventListener("click", resetToComposer);
 retryButton.addEventListener("click", () => { errorSection.hidden = true; timeTravel(); });
 
 updateSendState();
-

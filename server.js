@@ -22,7 +22,7 @@ async function warmupModels() {
   warmup.started = true;
   try {
     await ensurePairLoaded("en", "es");
-    await ensureVoiceLoaded("es");
+    await ensureVoiceLoaded("es", "F1");
     warmup.done = true;
     console.log("[warmup] ready");
   } catch (err) {
@@ -71,17 +71,18 @@ app.post("/api/time-travel", async (req, res) => {
   };
 
   try {
+    const personaId = typeof body.persona === "string" ? body.persona : "random";
+    const persona = resolvePersona(personaId);
+    const enriched = persona.prefix ? persona.prefix + " " + text.trim() : text.trim();
+
     send("phase", { phase: "translating", label: "Consulting the port translator..." });
-    const personaIdEarly = typeof body.persona === "string" ? body.persona : "random";
-    const earlyPersona = resolvePersona(personaIdEarly);
-    const enriched = earlyPersona.prefix ? earlyPersona.prefix + " " + text.trim() : text.trim();
     const translated = await translateText(enriched, from, to);
     send("translation", { translated });
 
     send("phase", { phase: "synthesizing", label: "Winding the phonograph..." });
-    const result = await speak(translated, to);
+    const result = await speak(translated, to, persona.voice);
     const wav = buildWav(result.pcm, result.sampleRate);
-    const card = buildEraCard(to, text.trim(), translated);
+    const card = buildEraCard(to, text.trim(), translated, personaId);
 
     send("audio", { wavBase64: wav.toString("base64"), sampleRate: result.sampleRate, card });
     send("done", {});
@@ -109,4 +110,3 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
     process.exit(0);
   });
 }
-
