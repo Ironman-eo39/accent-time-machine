@@ -25,6 +25,7 @@ const anotherButton = document.querySelector("#another");
 const errorSection = document.querySelector("#error-section");
 const errorText = document.querySelector("#error-text");
 const retryButton = document.querySelector("#retry");
+const swapButton = document.querySelector("#swap");
 
 let busy = false;
 
@@ -45,7 +46,7 @@ function updateSendState() {
     note.textContent = "Available routes: English \u2194 Espa\u00f1ol \u00b7 English \u2194 Fran\u00e7ais";
     note.classList.remove("invalid");
   } else {
-    note.textContent = "That route is not available. Only English \u2194 Espa\u00f1ol and English \u2194 Fran\u00e7ais." ;
+    note.textContent = "That route is not available. Only English \u2194 Espa\u00f1ol and English \u2194 Fran\u00e7ais.";
     note.classList.add("invalid");
   }
 }
@@ -55,7 +56,6 @@ function resetToComposer() {
   errorSection.hidden = true;
   statusSection.hidden = true;
   textInput.value = "";
-  audioEl.playbackRate = 1.0;
   audioEl.pause();
   audioEl.removeAttribute("src");
   updateSendState();
@@ -103,7 +103,8 @@ async function timeTravel() {
   const text = textInput.value.trim();
   const from = fromSelect.value;
   const to = toSelect.value;
-  if (!text || from === to) return;
+  const persona = personaSelect ? personaSelect.value : "random";
+  if (!text || from === to || !isRouteValid()) return;
 
   busy = true;
   updateSendState();
@@ -119,7 +120,7 @@ async function timeTravel() {
     const response = await fetch("/api/time-travel", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text, from, to, persona: personaSelect ? personaSelect.value : "random" }),
+      body: JSON.stringify({ text, from, to, persona }),
     });
 
     if (!response.ok) {
@@ -166,10 +167,6 @@ async function timeTravel() {
     const blob = new Blob([bytes], { type: "audio/wav" });
     const url = URL.createObjectURL(blob);
     audioEl.src = url;
-    audioEl.preservesPitch = false;
-    audioEl.mozPreservesPitch = false;
-    audioEl.webkitPreservesPitch = false;
-    audioEl.playbackRate = card.playbackRate || 1.0;
 
     statusSection.hidden = true;
     resultSection.hidden = false;
@@ -187,6 +184,16 @@ sendButton.addEventListener("click", timeTravel);
 textInput.addEventListener("input", updateSendState);
 fromSelect.addEventListener("change", updateSendState);
 toSelect.addEventListener("change", updateSendState);
+
+if (swapButton) {
+  swapButton.addEventListener("click", () => {
+    const a = fromSelect.value;
+    const b = toSelect.value;
+    fromSelect.value = b;
+    toSelect.value = a;
+    updateSendState();
+  });
+}
 
 textInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -220,17 +227,6 @@ audioEl.addEventListener("ended", () => {
 
 anotherButton.addEventListener("click", resetToComposer);
 retryButton.addEventListener("click", () => { errorSection.hidden = true; timeTravel(); });
-
-const swapButton = document.querySelector("#swap");
-if (swapButton) {
-  swapButton.addEventListener("click", () => {
-    const a = fromSelect.value;
-    const b = toSelect.value;
-    fromSelect.value = b;
-    toSelect.value = a;
-    updateSendState();
-  });
-}
 
 updateSendState();
 

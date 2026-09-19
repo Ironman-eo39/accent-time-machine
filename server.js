@@ -7,7 +7,7 @@ import { close } from "@qvac/sdk";
 import { translateText, ensurePairLoaded, isValidDirection, getAvailableDirections } from "./src/translate.js";
 import { speak, ensureVoiceLoaded } from "./src/speak.js";
 import { buildWav } from "./src/wav.js";
-import { buildEraCard, randomLoadingQuip } from "./src/eras.js";
+import { buildEraCard, randomLoadingQuip, resolvePersona } from "./src/eras.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3459);
@@ -72,7 +72,10 @@ app.post("/api/time-travel", async (req, res) => {
 
   try {
     send("phase", { phase: "translating", label: "Consulting the port translator..." });
-    const translated = await translateText(text.trim(), from, to);
+    const personaIdEarly = typeof body.persona === "string" ? body.persona : "random";
+    const earlyPersona = resolvePersona(personaIdEarly);
+    const enriched = earlyPersona.prefix ? earlyPersona.prefix + " " + text.trim() : text.trim();
+    const translated = await translateText(enriched, from, to);
     send("translation", { translated });
 
     send("phase", { phase: "synthesizing", label: "Winding the phonograph..." });

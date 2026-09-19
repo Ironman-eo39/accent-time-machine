@@ -1,12 +1,13 @@
-// src/eras.js - persona archetypes, era-card flavor, loading quips.
-// Persona = label + voice + client-side playbackRate (pitch+tempo shift).
+// src/eras.js - personas, era-card flavor, loading quips.
+// Each persona carries a short period prefix that gets prepended to the
+// input before translation. The whole enriched line is what gets shown.
 
 export const PERSONAS = [
-  { id: "random", label: "a mystery figure",       voice: "F1", rate: 1.00 },
-  { id: "spice",  label: "spice merchant",         voice: "F1", rate: 1.10 },
-  { id: "trader", label: "tea and silk trader",    voice: "F3", rate: 0.94 },
-  { id: "clerk",  label: "port customs clerk",     voice: "M1", rate: 1.02 },
-  { id: "master", label: "sailing master",         voice: "M3", rate: 0.86 },
+  { id: "random", label: "a mystery figure",    voice: "F1", prefix: "" },
+  { id: "spice",  label: "spice merchant",      voice: "F1", prefix: "Good sir -" },
+  { id: "trader", label: "tea and silk trader", voice: "F3", prefix: "Kind merchant -" },
+  { id: "clerk",  label: "port customs clerk",  voice: "M1", prefix: "For the ledger -" },
+  { id: "master", label: "sailing master",      voice: "M3", prefix: "Ahoy -" },
 ];
 
 const PORTS = {
@@ -44,8 +45,6 @@ export function buildEraCard(toLanguage, original, translated, personaId) {
     month,
     day,
     persona: persona.label,
-    personaId: persona.id,
-    playbackRate: persona.rate,
     original,
     translated,
   };
