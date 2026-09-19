@@ -1,0 +1,22 @@
+{
+  "name": "accent-time-machine",
+  "version": "1.0.0",
+  "description": "Hear your sentence as an 1800s merchant would have said it - on-device translation and speech via QVAC",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "spike": "node scripts/spike.js",
+    "smoke": "node scripts/smoke.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.17.0"
+  },
+  "dependencies": {
+    "@qvac/sdk": "^0.19.1",
+    "express": "^5.2.1"
+  }
+}

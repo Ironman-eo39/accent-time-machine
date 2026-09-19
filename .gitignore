@@ -1,0 +1,16 @@
+node_modules/
+
+.qvac/
+smoke-fr.wav
+smoke-es.wav
+*.log
+npm-debug.log*
+.env
+.env.local
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
