@@ -2,6 +2,7 @@
 
 const fromSelect = document.querySelector("#from");
 const toSelect = document.querySelector("#to");
+const personaSelect = document.querySelector("#persona");
 const textInput = document.querySelector("#text");
 const charCount = document.querySelector("#char-count");
 const sendButton = document.querySelector("#send");
@@ -12,7 +13,7 @@ const statusLabel = document.querySelector("#status-label");
 const resultSection = document.querySelector("#result-section");
 const cityEl = document.querySelector("#city");
 const dateEl = document.querySelector("#date-string");
-const personaEl = document.querySelector("#persona");
+const personaEl = document.querySelector("#era-persona");
 const translatedEl = document.querySelector("#translated");
 const originalEl = document.querySelector("#original");
 const playButton = document.querySelector("#play");
@@ -54,6 +55,7 @@ function resetToComposer() {
   errorSection.hidden = true;
   statusSection.hidden = true;
   textInput.value = "";
+  audioEl.playbackRate = 1.0;
   audioEl.pause();
   audioEl.removeAttribute("src");
   updateSendState();
@@ -117,7 +119,7 @@ async function timeTravel() {
     const response = await fetch("/api/time-travel", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text, from, to }),
+      body: JSON.stringify({ text, from, to, persona: personaSelect ? personaSelect.value : "random" }),
     });
 
     if (!response.ok) {
@@ -164,6 +166,10 @@ async function timeTravel() {
     const blob = new Blob([bytes], { type: "audio/wav" });
     const url = URL.createObjectURL(blob);
     audioEl.src = url;
+    audioEl.preservesPitch = false;
+    audioEl.mozPreservesPitch = false;
+    audioEl.webkitPreservesPitch = false;
+    audioEl.playbackRate = card.playbackRate || 1.0;
 
     statusSection.hidden = true;
     resultSection.hidden = false;
