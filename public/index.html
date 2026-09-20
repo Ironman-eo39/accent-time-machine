@@ -37,7 +37,19 @@
 
       <p class="route-note" id="route-note">Available routes: English &harr; Espa&ntilde;ol &middot; English &harr; Fran&ccedil;ais</p>
 
-      <div class="persona-row">
+      <div class="whimsy-row">
+        <label class="whimsy-toggle" for="whimsy">
+          <input type="checkbox" id="whimsy" />
+          <span class="whimsy-box"></span>
+          <span class="whimsy-text">
+            <strong>Whimsy mode</strong>
+            <em>LLM dramatization &middot; on-device</em>
+          </span>
+        </label>
+        <span class="whimsy-state" id="whimsy-state">OFF</span>
+      </div>
+
+      <div class="persona-row" id="persona-row" hidden>
         <label for="persona">Persona</label>
         <select id="persona">
           <option value="random">Random</option>
@@ -67,8 +79,11 @@
           <span>PORT OF <strong id="city"></strong></span>
         </div>
         <div class="card-date"><span id="date-string"></span></div>
-        <div class="persona">&mdash; <em id="era-persona"></em> &mdash;</div>
+        <div class="persona" id="persona-line" hidden>&mdash; <em id="era-persona"></em> &mdash;</div>
+        <div class="whimsy-badge" id="whimsy-badge" hidden>dramatized on-device</div>
+        <p class="frame-line" id="greeting"></p>
         <p class="translated" id="translated"></p>
+        <p class="frame-line" id="closing"></p>
         <p class="original">as typed: &ldquo;<span id="original"></span>&rdquo;</p>
         <button class="play-button" id="play" type="button"><span id="play-icon">&nbsp;&#9654;&nbsp;</span><span id="play-label">PLAY THE PHONOGRAPH</span></button>
         <audio id="audio" preload="auto"></audio>
@@ -89,4 +104,7 @@
   <script type="module" src="/app.js"></script>
 </body>
 </html>
+
+
+
 

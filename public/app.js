@@ -3,6 +3,9 @@
 const fromSelect = document.querySelector("#from");
 const toSelect = document.querySelector("#to");
 const personaSelect = document.querySelector("#persona");
+const personaRow = document.querySelector("#persona-row");
+const whimsyState = document.querySelector("#whimsy-state");
+const whimsyCheckbox = document.querySelector("#whimsy");
 const textInput = document.querySelector("#text");
 const charCount = document.querySelector("#char-count");
 const sendButton = document.querySelector("#send");
@@ -13,7 +16,11 @@ const statusLabel = document.querySelector("#status-label");
 const resultSection = document.querySelector("#result-section");
 const cityEl = document.querySelector("#city");
 const dateEl = document.querySelector("#date-string");
+const personaLine = document.querySelector("#persona-line");
 const personaEl = document.querySelector("#era-persona");
+const whimsyBadge = document.querySelector("#whimsy-badge");
+const greetingEl = document.querySelector("#greeting");
+const closingEl = document.querySelector("#closing");
 const translatedEl = document.querySelector("#translated");
 const originalEl = document.querySelector("#original");
 const playButton = document.querySelector("#play");
@@ -33,6 +40,16 @@ const VALID_DIRECTIONS = new Set(["en-es", "es-en", "en-fr", "fr-en"]);
 
 function isRouteValid() {
   return VALID_DIRECTIONS.has(fromSelect.value + "-" + toSelect.value);
+}
+
+function syncWhimsyUI() {
+  const on = whimsyCheckbox.checked;
+  if (personaRow) personaRow.hidden = !on;
+  if (whimsyState) {
+    whimsyState.textContent = on ? "ON" : "OFF";
+    whimsyState.classList.toggle("on", on);
+  }
+  try { localStorage.setItem("whimsy", on ? "true" : "false"); } catch { /* ignore */ }
 }
 
 function updateSendState() {
@@ -56,7 +73,6 @@ function resetToComposer() {
   resultSection.hidden = true;
   errorSection.hidden = true;
   statusSection.hidden = true;
-  textInput.value = "";
   audioEl.pause();
   audioEl.removeAttribute("src");
   updateSendState();
@@ -78,9 +94,22 @@ function formatDate(card) {
 function renderCard(card) {
   cityEl.textContent = card.city.toUpperCase();
   dateEl.textContent = formatDate(card);
-  personaEl.textContent = card.persona;
   translatedEl.textContent = card.translated;
-  originalEl.textContent = card.original;
+  if (greetingEl) greetingEl.textContent = card.greeting || "";
+  if (closingEl) closingEl.textContent = card.closing || "";
+originalEl.textContent = card.original;
+
+  if (card.persona) {
+    personaEl.textContent = card.persona;
+    personaLine.hidden = false;
+  } else {
+    personaEl.textContent = "";
+    personaLine.hidden = true;
+  }
+
+  if (whimsyBadge) {
+    whimsyBadge.hidden = !card.whimsy;
+  }
 }
 
 function parseSSEBlock(block) {
@@ -104,7 +133,9 @@ async function timeTravel() {
   const text = textInput.value.trim();
   const from = fromSelect.value;
   const to = toSelect.value;
-  const persona = personaSelect ? personaSelect.value : "random";
+  const whimsy = whimsyCheckbox ? whimsyCheckbox.checked : false;
+  const persona = whimsy && personaSelect ? personaSelect.value : null;
+  console.log("[ui] sending whimsy =", whimsy, "persona =", persona);
   if (!text || from === to || !isRouteValid()) return;
 
   busy = true;
@@ -121,7 +152,7 @@ async function timeTravel() {
     const response = await fetch("/api/time-travel", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text, from, to, persona }),
+      body: JSON.stringify({ text, from, to, persona, whimsy }),
     });
 
     if (!response.ok) {
@@ -149,6 +180,8 @@ async function timeTravel() {
           statusLabel.textContent = data.label || "Working...";
         } else if (parsed.eventType === "translation") {
           statusLabel.textContent = "Winding the phonograph...";
+        } else if (parsed.eventType === "dramatized") {
+          // informational; final card carries the dramatized text
         } else if (parsed.eventType === "audio") {
           card = data.card;
           wavBase64 = data.wavBase64;
@@ -162,6 +195,7 @@ async function timeTravel() {
 
     if (!card || !wavBase64) throw new Error("The time machine returned nothing.");
 
+    console.log("[ui] received card.whimsy =", card.whimsy);
     renderCard(card);
 
     const bytes = base64ToBytes(wavBase64);
@@ -173,7 +207,6 @@ async function timeTravel() {
     resultSection.hidden = false;
 
     try { await audioEl.play(); } catch { /* autoplay blocked */ }
-    textInput.value = "";
     updateSendState();
   } catch (err) {
     showError(err.message || "Something went wrong.");
@@ -187,6 +220,8 @@ sendButton.addEventListener("click", timeTravel);
 textInput.addEventListener("input", updateSendState);
 fromSelect.addEventListener("change", updateSendState);
 toSelect.addEventListener("change", updateSendState);
+
+whimsyCheckbox.addEventListener("change", syncWhimsyUI);
 
 if (swapButton) {
   swapButton.addEventListener("click", () => {
@@ -231,4 +266,17 @@ audioEl.addEventListener("ended", () => {
 anotherButton.addEventListener("click", resetToComposer);
 retryButton.addEventListener("click", () => { errorSection.hidden = true; timeTravel(); });
 
+try {
+  const saved = localStorage.getItem("whimsy");
+  if (saved === "true" && whimsyCheckbox) whimsyCheckbox.checked = true;
+} catch { /* ignore */ }
+
+syncWhimsyUI();
 updateSendState();
+
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-// server.js - HTTP server + SSE endpoint for the translate -> speak pipeline.
+// server.js - HTTP server + SSE endpoint for the translate -> [whimsy] -> speak pipeline.
 
 import express from "express";
 import { fileURLToPath } from "node:url";
@@ -7,7 +7,8 @@ import { close } from "@qvac/sdk";
 import { translateText, ensurePairLoaded, isValidDirection, getAvailableDirections } from "./src/translate.js";
 import { speak, ensureVoiceLoaded } from "./src/speak.js";
 import { buildWav } from "./src/wav.js";
-import { buildEraCard, randomLoadingQuip, resolvePersona } from "./src/eras.js";
+import { buildEraCard, randomLoadingQuip, resolvePersona, NEUTRAL_PERSONA } from "./src/eras.js";
+import { buildFrame, unloadLLM } from "./src/whimsy.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3459);
@@ -24,7 +25,7 @@ async function warmupModels() {
     await ensurePairLoaded("en", "es");
     await ensureVoiceLoaded("es", "F1");
     warmup.done = true;
-    console.log("[warmup] ready");
+    console.log("[warmup] ready (NMT + TTS only; LLM loads on first whimsy request)");
   } catch (err) {
     warmup.error = err.message;
     console.error("[warmup] failed:", err.message);
@@ -46,6 +47,7 @@ app.post("/api/time-travel", async (req, res) => {
   const text = body.text;
   const from = body.from;
   const to = body.to;
+  const whimsy = body.whimsy === true;
 
   if (typeof text !== "string" || text.trim().length === 0) {
     return res.status(400).json({ error: "Type something first." });
@@ -71,18 +73,42 @@ app.post("/api/time-travel", async (req, res) => {
   };
 
   try {
-    const personaId = typeof body.persona === "string" ? body.persona : "random";
-    const persona = resolvePersona(personaId);
-    const enriched = persona.prefix ? persona.prefix + " " + text.trim() : text.trim();
+    // Persona is only resolved when whimsy is on. Otherwise neutral voice, no prefix.
+    const persona = whimsy
+      ? resolvePersona(typeof body.persona === "string" ? body.persona : "random")
+      : NEUTRAL_PERSONA;
+
+    // Prefix removed: the whimsy frame now provides greeting; pure mode has none.
+    const enriched = text.trim();
 
     send("phase", { phase: "translating", label: "Consulting the port translator..." });
     const translated = await translateText(enriched, from, to);
-    send("translation", { translated });
+    send("translation", { translated, whimsy });
+
+    let greeting = "";
+    let closing = "";
+    if (whimsy) {
+      send("phase", { phase: "dramatizing", label: "Stirring the inkwell..." });
+      try {
+        const frame = await buildFrame(to, persona);
+        greeting = frame.greeting;
+        closing = frame.closing;
+        send("dramatized", { greeting, closing });
+      } catch (err) {
+        console.error("[whimsy] frame failed, using plain translation:", err.message);
+      }
+    }
+
+    // Translated sentence is NEVER modified. Frame goes around it.
+    const spoken = [greeting, translated, closing].filter(Boolean).join(" ");
+    const finalText = spoken;
 
     send("phase", { phase: "synthesizing", label: "Winding the phonograph..." });
-    const result = await speak(translated, to, persona.voice);
+    const result = await speak(finalText, to, persona.voice);
     const wav = buildWav(result.pcm, result.sampleRate);
-    const card = buildEraCard(to, text.trim(), translated, personaId);
+    const card = buildEraCard(to, text.trim(), translated, persona.label, whimsy);
+    card.greeting = greeting;
+    card.closing = closing;
 
     send("audio", { wavBase64: wav.toString("base64"), sampleRate: result.sampleRate, card });
     send("done", {});
@@ -106,7 +132,13 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
     console.log("");
     console.log("Shutting down...");
     server.close();
-    try { await close(); } catch (e) { /* ignore */ }
+    try { await unloadLLM(); } catch { /* ignore */ }
+    try { await close(); } catch { /* ignore */ }
     process.exit(0);
   });
 }
+
+
+
+
+

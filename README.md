@@ -17,7 +17,7 @@ Everything runs on your machine. Nothing leaves the device.
 
 ## Why it isn't just another translator
 
-Translation is the *engine*, not the product. The product is the fiction: you're not reading a translation, you're reading a message that arrived by sail in 1843.
+Translation is the _engine_, not the product. The product is the fiction: you're not reading a translation, you're reading a message that arrived by sail in 1843.
 
 Whimsy Mode is what makes that fiction land. Instead of a raw translation, you get a short opening ("In the depths of the orient, I meet a stranger") and a closing ("Farewell, my dear, may the winds of fortune blow") around the sentence — written live by an on-device LLM, in the target language, in the persona's voice.
 
@@ -42,14 +42,14 @@ The LLM (`LLAMA_3_2_1B_INST_Q4_0`) loads lazily on the first whimsy request. Onc
 
 ## QVAC SDK functions used
 
-| Function | Where | Purpose |
-|---|---|---|
-| `loadModel` | `src/translate.js`, `src/speak.js`, `src/whimsy.js` | Loads NMT, TTS, and LLM models |
-| `translate` | `src/translate.js` | Neural machine translation |
-| `textToSpeech` | `src/speak.js` | Supertonic 3 voice synthesis |
-| `completion` | `src/whimsy.js` | LLM writes the period greeting/closing |
-| `unloadModel` | `src/speak.js`, `src/whimsy.js` | Frees prior voice / LLM |
-| `close` | `server.js` | Graceful shutdown |
+| Function       | Where                                               | Purpose                                |
+| -------------- | --------------------------------------------------- | -------------------------------------- |
+| `loadModel`    | `src/translate.js`, `src/speak.js`, `src/whimsy.js` | Loads NMT, TTS, and LLM models         |
+| `translate`    | `src/translate.js`                                  | Neural machine translation             |
+| `textToSpeech` | `src/speak.js`                                      | Supertonic 3 voice synthesis           |
+| `completion`   | `src/whimsy.js`                                     | LLM writes the period greeting/closing |
+| `unloadModel`  | `src/speak.js`, `src/whimsy.js`                     | Frees prior voice / LLM                |
+| `close`        | `server.js`                                         | Graceful shutdown                      |
 
 SDK version: **@qvac/sdk ^0.19.1**
 
